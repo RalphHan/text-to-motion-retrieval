@@ -89,13 +89,11 @@ def main(cfg):
         # checkpoint manager
         ckpt_dir = Path(run_dir) / Path('best_models')
         ckpt_dir.mkdir(parents=True, exist_ok=True)
-        ckpt_manager = CheckpointManager(ckpt_dir, current_best=best_metrics)
 
         # Train loop
         mean_loss = 0
         best_rsum = 0
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
         for epoch in tqdm.trange(start_epoch, cfg.optim.epochs):
             progress_bar = tqdm.tqdm(train_dataloader)
             progress_bar.set_description('Train')
@@ -107,21 +105,6 @@ def main(cfg):
 
                 # prepare the inputs
                 caption, motion, motion_len = batch['desc'], batch['motion'], batch['motion_len']
-                # motion = motion.to(device)
-                # pose, trajectory, start_trajectory = X
-                # # pose_gt, trajectory_gt, start_trajectory_gt = Y
-
-                # x = torch.cat((trajectory, pose), dim=-1).to(device)
-                # # y = torch.cat((trajectory_gt, pose_gt), dim=-1).to(device)
-
-                # if isinstance(s2v, torch.Tensor):
-                #     s2v = s2v.to(device)
-
-                # # Transform before the model
-                # x = pre.transform(x)
-                # # y = pre.transform(y)
-                # x = x[..., :-4]
-                # # y = y[..., :-4]
 
                 loss, monitors = model(motion, motion_len, caption, epoch=epoch)
                 loss.backward()
@@ -141,32 +124,15 @@ def main(cfg):
                 if monitors is not None and len(monitors) > 0:
                     tb_logger.add_scalars("Training/Monitor Values", monitors, global_iteration)
 
-                if global_iteration % cfg.optim.val_freq == 0:
-                    # validate
-                    metrics = validate(val_dataloader, model)
-                    for m, v in metrics.items():
-                        tb_logger.add_scalar("Validation/{}".format(m), v, global_iteration)
-                    # progress_bar.set_postfix(dict(r1='{:.2}'.format(metrics['r1']), r5='{:.2}'.format(metrics['r5']), meanr='{:.2}'.format(metrics['meanr'])))
-                    log.info(metrics)
-
-                    # save only if best on some metric (via CheckpointManager)
-                    best_metrics = ckpt_manager.save({
-                        'model': model.state_dict(),
-                        'optimizer': optimizer.state_dict(),
-                        'epoch': epoch,
-                        'metrics': metrics
-                    }, metrics, epoch)
-
-                    # save model
-                    log.info('Saving model...')
-                    checkpoint = {
-                        'cfg': cfg,
-                        'epoch': epoch,
-                        'model': model.state_dict(),
-                        'optimizer': optimizer.state_dict(),
-                        'scheduler': scheduler.state_dict(),
-                        'best_metrics': best_metrics}
-                    torch.save(checkpoint, Path(run_dir) / 'last.pt')
+            log.info('Saving model...')
+            checkpoint = {
+                'cfg': cfg,
+                'epoch': epoch,
+                'model': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'scheduler': scheduler.state_dict(),
+                'best_metrics': best_metrics}
+            torch.save(checkpoint, Path(run_dir) / f'ckpt_e{epoch}.pth')
 
             scheduler.step()
 
@@ -178,15 +144,6 @@ def main(cfg):
     log.info("Training ended. Exiting....")
 
 
-
-def validate(val_dataloader, model):
-    model.eval()
-
-    motion_feats, caption_feats, motion_labels = evaluation.encode_data(model, val_dataloader)
-    metrics = evaluation.compute_recall('val', caption_feats, motion_feats, motion_labels, val_dataloader.dataset)
-
-    model.train()
-    return metrics
 
 if __name__ == '__main__':
     main()

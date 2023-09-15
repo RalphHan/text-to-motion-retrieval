@@ -279,53 +279,18 @@ class Text2MotionDatasetV2(data.Dataset):
                 with cs.open(pjoin(opt.text_dir, name + '.txt')) as f:
                     for line_no, line in enumerate(f.readlines()):
                         text_dict = {}
-                        line_split = line.strip().split('#')
-                        caption = line_split[0]
-                        tokens = line_split[1].split(' ')
-                        f_tag = float(line_split[2])
-                        to_tag = float(line_split[3])
-                        f_tag = 0.0 if np.isnan(f_tag) else f_tag
-                        to_tag = 0.0 if np.isnan(to_tag) else to_tag
-
-                        text_dict['caption'] = caption
-                        text_dict['tokens'] = tokens
-                        if True: #f_tag == 0.0 and to_tag == 0.0:
-                            data_list.append({
-                                'name': name,
-                                'motion': motion,
-                                'length': len(motion),
-                                'text': text_dict,
-                                'labels': labels_row})
-                        else:
-                            try:
-                                n_motion = motion[int(f_tag*20) : int(to_tag*20)]
-                                if (len(n_motion)) < min_motion_len or (len(n_motion) >= 200):
-                                    continue
-                                new_name = name + '_' + str(line_no) # random.choice('ABCDEFGHIJKLMNOPQRSTUVW') + '_' + name
-                                data_list.append({
-                                    'name': new_name,
-                                    'motion': n_motion,
-                                    'length': len(n_motion),
-                                    'text': text_dict,
-                                    'labels': labels_row})
-                                # new_name_list.append(new_name)
-                                # length_list.append(len(n_motion))
-                            except:
-                                print(line_split)
-                                print(line_split[2], line_split[3], f_tag, to_tag, name)
-                                # break
-
-                # if flag:
-                #     data_list[name] = {'motion': motion,
-                #                        'length': len(motion),
-                #                        'text': text_data}
-                #     new_name_list.append(name)
-                #     length_list.append(len(motion))
-            except:
+                        text_dict['caption'] = line.strip()
+                        text_dict['tokens'] = line.strip().split()
+                        data_list.append({
+                            'name': name,
+                            'motion': motion,
+                            'length': len(motion),
+                            'text': text_dict,
+                            'labels': labels_row})
+            except Exception as e:
                 pass
 
         # name_list, length_list = zip(*sorted(zip(new_name_list, length_list), key=lambda x: x[0]))
-
         self.mean = mean
         self.std = std
         # self.length_arr = np.array(length_list)
