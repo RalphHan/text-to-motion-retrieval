@@ -98,7 +98,7 @@ def compute_recall(split, queries, motions, labels, dataset, return_all=False, t
     # initialize the NDCG metrics
     relevance_methods = ['spacy'] # ['spice', 'spacy']
     dataset_name = dataset.opt.dataset_name
-    ndcg_scorer = nDCG(dataset_name, npts, split, relevance_methods=relevance_methods)
+    # ndcg_scorer = nDCG(dataset_name, npts, split, relevance_methods=relevance_methods)
     ndcgs = {m: numpy.zeros(npts) for m in relevance_methods}
     ordered_relevances = {m: numpy.zeros((npts, top_k_to_return)) for m in relevance_methods}
 
@@ -146,11 +146,11 @@ def compute_recall(split, queries, motions, labels, dataset, return_all=False, t
         out_descriptions.append([agg_desc[i] for i in top_k_motion_id])
 
         # compute and store ndcg
-        ndcg_output = ndcg_scorer.compute_ndcg(i, unique_order_motion_id)
+        # ndcg_output = ndcg_scorer.compute_ndcg(i, unique_order_motion_id)
         # ndcgs['spice'][i], ord_rel_spice = ndcg_output[0]['spice'], ndcg_output[1]['spice']
-        ndcgs['spacy'][i], ord_rel_spacy = ndcg_output[0]['spacy'], ndcg_output[1]['spacy']
+        # ndcgs['spacy'][i], ord_rel_spacy = ndcg_output[0]['spacy'], ndcg_output[1]['spacy']
         # ordered_relevances['spice'][i] = ord_rel_spice[:top_k_to_return]
-        ordered_relevances['spacy'][i] = ord_rel_spacy[:top_k_to_return]
+        # ordered_relevances['spacy'][i] = ord_rel_spacy[:top_k_to_return]
 
     # Compute metrics
     r1 = 100.0 * len(numpy.where(ranks < 1)[0]) / len(ranks)

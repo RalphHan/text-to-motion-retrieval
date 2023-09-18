@@ -60,7 +60,6 @@ class MatchingModel(nn.Module):
         # transform motion into correct representation
         motion = motion.to(self.device_2)
         motion = self.transform_representation(motion)  # B x seqlen x num_joints x dims
-
         # process motion
         motion_emb_bkb = self.pose_enc(motion, motion_len)
         motion_emb = self.pose_proj(motion_emb_bkb)
@@ -76,7 +75,6 @@ class MatchingModel(nn.Module):
         # move motion embs to device_1 so that both motion and text are on the same device
         motion_emb = motion_emb.to(self.device_1)
         motion_emb_bkb = motion_emb_bkb.to(self.device_1)
-
         if return_all:
             return {'motion_emb': motion_emb,
                     'motion_emb_bkb': motion_emb_bkb,
