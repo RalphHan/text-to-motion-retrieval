@@ -151,6 +151,6 @@ class DGSTGCN(nn.Module):
 
         # x = x.reshape((N, M) + x.shape[1:])
         x = self.pool(x)
-        x = x.squeeze()
+        x = x.view(N, -1)
 
         return x
